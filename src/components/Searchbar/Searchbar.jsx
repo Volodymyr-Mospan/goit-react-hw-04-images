@@ -1,4 +1,5 @@
 import { Formik } from 'formik';
+import PropTypes from 'prop-types';
 import {
   SearchHeader,
   SearchForm,
@@ -13,7 +14,9 @@ export const Searchbar = ({ onSabmit }) => {
       <Formik
         initialValues={{ query: '' }}
         onSubmit={(values, actions) => {
-          if (values.query.trim()) onSabmit(values.query.trim());
+          if (values.query.trim()) {
+            return onSabmit(values.query.trim());
+          }
         }}
       >
         <SearchForm>
@@ -28,4 +31,8 @@ export const Searchbar = ({ onSabmit }) => {
       </Formik>
     </SearchHeader>
   );
+};
+
+Searchbar.propTypes = {
+  onSabmit: PropTypes.func.isRequired,
 };

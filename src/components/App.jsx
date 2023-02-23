@@ -1,94 +1,88 @@
-import { React, Component } from 'react';
+import { React, useState, useEffect } from 'react';
 import { Searchbar } from 'components/Searchbar/Searchbar';
 import { ImageGallery } from 'components/ImageGallery/ImageGallery';
 import { Button } from 'components/Button/Button';
 import { Loader } from 'components/Loader/Loader';
 import { addImages } from 'services/api';
 
-export class App extends Component {
-  state = {
-    images: [],
-    query: '',
-    page: 1,
-    totalHits: 0,
-    isLoading: false,
-    error: null,
-  };
+export const App = () => {
+  const [images, setImages] = useState([]);
+  const [query, setQuery] = useState('');
+  const [page, setPsge] = useState(1);
+  const [totalHits, setTotalHits] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  async componentDidUpdate(prevProps, prevState) {
-    if (this.state.query !== prevState.query) {
-      this.setState({ images: [], isLoading: true });
-
-      try {
-        const result = await addImages(this.state.query, 1);
-
-        this.setState({
-          images: result.hits,
-          page: 1,
-          totalHits: result.totalHits,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        this.setState({
-          images: [],
-          page: 1,
-          totalHits: 0,
-          isLoading: false,
-          error: error,
-        });
-      }
+  useEffect(() => {
+    if (!query) {
+      return;
     }
-  }
 
-  loadMore = async () => {
-    const { query, page } = this.state;
-    this.setState({ isLoading: true });
+    setImages([]);
+    setIsLoading(true);
+
+    const fetchImages = async () => {
+      try {
+        const result = await addImages(query, 1);
+        setImages(result.hits);
+        setPsge(1);
+        setTotalHits(result.totalHits);
+        setIsLoading(false);
+        setError(null);
+      } catch (error) {
+        setImages([]);
+        setPsge(1);
+        setTotalHits(0);
+        setIsLoading(false);
+        setError(error);
+      }
+    };
+
+    fetchImages();
+  }, [query]);
+
+  const loadMore = async () => {
+    setIsLoading(true);
     const result = await addImages(query, page + 1);
-    this.setState(prevState => ({
-      images: [...prevState.images, ...result.hits],
-      page: prevState.page + 1,
-      isLoading: false,
-    }));
+    setImages([...images, ...result.hits]);
+    setPsge(page + 1);
+    setIsLoading(false);
   };
 
-  handleSearch = query => {
-    this.setState({ query });
+  const handleSearch = query => {
+    setQuery(query);
   };
 
-  render() {
-    const { images, page, totalHits, isLoading, error } = this.state;
-    const maxPage = Math.ceil(totalHits / 12);
+  const maxPage = Math.ceil(totalHits / 12);
 
-    return (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gridGap: '16px',
-          paddingBottom: '24px',
-        }}
-      >
-        <Searchbar onSabmit={this.handleSearch} />
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: '16px',
+        paddingBottom: '24px',
+      }}
+    >
+      <Searchbar onSabmit={handleSearch} />
 
-        {error && !isLoading && (
-          <h1
-            style={{
-              margin: '25px auto',
-            }}
-          >
-            {error.message}
-          </h1>
-        )}
+      {error && !isLoading && (
+        <h1
+          style={{
+            margin: '25px auto',
+          }}
+        >
+          {error.message}
+        </h1>
+      )}
 
-        {!!images.length && <ImageGallery images={images} />}
+      {!!images.length && <ImageGallery images={images} />}
 
-        {isLoading && <Loader />}
+      {isLoading && <Loader />}
 
-        {!!images.length && page < maxPage && !isLoading && (
-          <Button onClick={this.loadMore} isLoading={isLoading} />
-        )}
-      </div>
-    );
-  }
-}
+      {!!images.length && page < maxPage && !isLoading && (
+        <Button onClick={loadMore} isLoading={isLoading} />
+      )}
+    </div>
+  );
+};
