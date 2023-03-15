@@ -12,6 +12,7 @@ export const App = () => {
   const [totalHits, setTotalHits] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [reqID, setReqID] = useState(1);
 
   useEffect(() => {
     if (!query) {
@@ -39,7 +40,7 @@ export const App = () => {
     };
 
     fetchImages();
-  }, [query]);
+  }, [query, reqID]);
 
   const loadMore = async () => {
     setIsLoading(true);
@@ -51,6 +52,9 @@ export const App = () => {
 
   const handleSearch = query => {
     setQuery(query);
+    setReqID(prevID => {
+      return (prevID += 1);
+    });
   };
 
   const maxPage = Math.ceil(totalHits / 12);

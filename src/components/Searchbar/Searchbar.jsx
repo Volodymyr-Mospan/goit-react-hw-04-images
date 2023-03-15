@@ -15,6 +15,7 @@ export const Searchbar = ({ onSabmit }) => {
         initialValues={{ query: '' }}
         onSubmit={(values, actions) => {
           if (values.query.trim()) {
+            console.log('qwe');
             return onSabmit(values.query.trim());
           }
         }}
